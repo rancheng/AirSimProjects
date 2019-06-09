@@ -426,7 +426,8 @@ class DeepQAgent(object):
         """Plot current buffers accumulated values to visualize agent learning
         """
         if len(self._episode_q_means) > 0:
-            mean_q = np.asscalar(np.mean(self._episode_q_means))
+            # mean_q = np.asscalar(np.mean(self._episode_q_means))
+            mean_q = np.mean(self._episode_q_means).item()
             self._metrics_writer.write_value('Mean Q per ep.', mean_q, self._num_actions_taken)
 
         if len(self._episode_q_stddev) > 0:
@@ -475,6 +476,7 @@ def compute_reward(car_state):
 
     z = 0
     # pts = [np.array([0, -1, z]), np.array([130, -1, z]), np.array([130, 125, z]), np.array([0, 125, z]), np.array([0, -1, z]), np.array([130, -1, z]), np.array([130, -128, z]), np.array([0, -128, z]), np.array([0, -1, z])]
+    # NH environment check points.
     pts = [np.array([0, 0, 0]), np.array([41, 0, 0]), np.array([101, 0, 0]), np.array([126, -7, 0]),
            np.array([127, -60, 0]), np.array([127, -114, 0]), np.array([117, -129, 0]), np.array([79, -119, 0]),
            np.array([86, -109, 0])]
@@ -503,8 +505,11 @@ def isDone(car_state, car_controls, reward):
     if reward < -1:
         done = 1
     if car_controls.brake == 0:
-        if car_state.speed <= 5:
+        if car_state.collision.has_collided:
             done = 1
+        # if car_state.speed <= 5:
+        #     done = 1
+    print("Done {%d}, Reward {%f}, Car Speed {%f}:" % (done, reward, car_state.speed))
     return done
 
 
@@ -529,7 +534,9 @@ responses = client.simGetImages([airsim.ImageRequest("0", airsim.ImageType.Depth
 current_state = transform_input(responses)
 while True:
     action = agent.act(current_state)
+    print("action: %d" %action)
     car_controls = interpret_action(action)
+
     client.setCarControls(car_controls)
 
     car_state = client.getCarState()
