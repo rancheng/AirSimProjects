@@ -431,7 +431,7 @@ class DeepQAgent(object):
             self._metrics_writer.write_value('Mean Q per ep.', mean_q, self._num_actions_taken)
 
         if len(self._episode_q_stddev) > 0:
-            std_q = np.asscalar(np.mean(self._episode_q_stddev))
+            std_q = np.mean(self._episode_q_stddev).item()
             self._metrics_writer.write_value('Mean Std Q per ep.', std_q, self._num_actions_taken)
 
         self._metrics_writer.write_value('Sum rewards per ep.', sum(self._episode_rewards), self._num_actions_taken)
@@ -533,6 +533,9 @@ max_steps = epoch * 250000
 responses = client.simGetImages([airsim.ImageRequest("0", airsim.ImageType.DepthPerspective, True, False)])
 current_state = transform_input(responses)
 while True:
+    if current_state > max_steps:
+        break
+    current_step += 1
     action = agent.act(current_state)
     print("action: %d" %action)
     car_controls = interpret_action(action)
