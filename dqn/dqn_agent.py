@@ -516,7 +516,7 @@ class DQNAgent():
                 random_direction = (0, 0, -1.0 * math.pi / 2)
 
         # The z coordinate is always zero
-        random_start_point[2] = 0.1
+        random_start_point[2] = 0.01
         return (random_start_point, random_direction)
 
     # A helper function to make a directory if it does not exist
