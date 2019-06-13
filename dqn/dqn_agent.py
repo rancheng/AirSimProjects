@@ -77,6 +77,9 @@ class DQNAgent():
         self.__init_road_points()
         self.__init_reward_points()
 
+        self.__default_image_height = 144
+        self.__default_image_width = 256
+
     # Starts the agent
     def start(self):
         self.__run_function()
@@ -171,7 +174,8 @@ class DQNAgent():
     def __append_to_ring_buffer(self, item, buffer, buffer_size):
         if (len(buffer) >= buffer_size):
             buffer = buffer[1:]
-        buffer.append(item)
+        if sum(sum(sum(item))) > 0:
+            buffer.append(item)
         return buffer
 
     # Runs an interation of data generation from AirSim.
@@ -288,6 +292,7 @@ class DQNAgent():
                 reward, far_off = self.__compute_reward(collision_info, car_state)
 
                 # Add the experience to the set of examples from this iteration
+
                 pre_states.append(pre_state)
                 post_states.append(state_buffer)
                 rewards.append(reward)
@@ -319,6 +324,7 @@ class DQNAgent():
 
     # Adds a set of examples to the replay memory
     def __add_to_replay_memory(self, field_name, data):
+
         if field_name not in self.__experiences:
             self.__experiences[field_name] = data
         else:
@@ -400,8 +406,11 @@ class DQNAgent():
     def __get_image(self):
         image_response = self.__car_client.simGetImages([airsim.ImageRequest(0, airsim.ImageType.Scene, False, False)])[0]
         image1d = np.fromstring(image_response.image_data_uint8, dtype=np.uint8)
+        # there is a bug when some time airsim will return Null images
+        if not len(image1d) > 2:
+            image_rgba = np.zeros((self.__default_image_height, self.__default_image_width, 4))
+            return image_rgba[76:135, 0:255, 0:3].astype(float)
         image_rgba = image1d.reshape(image_response.height, image_response.width, 4)
-
         return image_rgba[76:135, 0:255, 0:3].astype(float)
 
     # Computes the reward functinon based on the car position.
