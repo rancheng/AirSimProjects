@@ -143,8 +143,9 @@ class RlModel():
 
         # For now, our model only takes a single image in as input.
         # Only read in the last image from each set of examples
-        pre_states = pre_states[:, 3, :, :, :]
-        post_states = post_states[:, 3, :, :, :]
+        print("pre_states shapes: ", pre_states.shape)
+        pre_states = pre_states[:, -1, :, :, :]
+        post_states = post_states[:, -1, :, :, :]
 
         print('START GET GRADIENT UPDATE DEBUG')
 
@@ -192,7 +193,7 @@ class RlModel():
 
         # Our model only predicts on a single state.
         # Take the latest image
-        observation = observation[3, :, :, :]
+        observation = observation[-1, :, :, :]
         observation = observation.reshape(1, 59, 255, 3)
         with self.__action_context.as_default():
             predicted_qs = self.__action_model.predict([observation])
