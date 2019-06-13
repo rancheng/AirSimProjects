@@ -451,8 +451,8 @@ class DQNAgent():
     # Initializes the points used for determining the starting point of the vehicle
     def __init_road_points(self):
         self.__road_points = []
-        car_start_coords = [0, 0, 0]
-        with open(os.path.join(self.__data_dir, 'road_lines.txt'), 'r') as f:
+        car_start_coords = [0, 0, 0.1]
+        with open(os.path.join(self.__data_dir, 'dump_road_lines.txt'), 'r') as f:
             for line in f:
                 points = line.split('\t')
                 first_point = np.array([float(p) for p in points[0].split(',')] + [0])
@@ -471,7 +471,7 @@ class DQNAgent():
     # Initializes the points used for determining the optimal position of the vehicle during the reward function
     def __init_reward_points(self):
         self.__reward_points = []
-        with open(os.path.join(self.__data_dir, 'reward_points.txt'), 'r') as f:
+        with open(os.path.join(self.__data_dir, 'dump_points.txt'), 'r') as f:
             for line in f:
                 point_values = line.split('\t')
                 first_point = np.array([float(point_values[0]), float(point_values[1]), 0])
@@ -516,7 +516,7 @@ class DQNAgent():
                 random_direction = (0, 0, -1.0 * math.pi / 2)
 
         # The z coordinate is always zero
-        random_start_point[2] = -0
+        random_start_point[2] = 0.1
         return (random_start_point, random_direction)
 
     # A helper function to make a directory if it does not exist
