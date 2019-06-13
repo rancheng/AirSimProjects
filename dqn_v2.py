@@ -515,9 +515,10 @@ def compute_distance_reward(car_state, collision_info, road_points):
     x_val_key = bytes('x_val', encoding='utf8')
     y_val_key = bytes('y_val', encoding='utf8')
 
-    car_point = np.array(
-        [car_state.kinematics_true[position_key][x_val_key], car_state.kinematics_true[position_key][y_val_key], 0])
-
+    # car_point = np.array(
+    #     [car_state.kinematics_estimated[position_key][x_val_key], car_state.kinematics_estimated[position_key][y_val_key], 0])
+    pd = car_state.kinematics_estimated.position
+    car_point = np.array([pd.x_val, pd.y_val, pd.z_val])
     # Distance component is exponential distance to nearest line
     distance = 999
 
@@ -536,6 +537,15 @@ def compute_distance_reward(car_state, collision_info, road_points):
 
     return distance_reward
 
+
+def compute_reward(car_state):
+    rwd_points = init_reward_points()
+    MAX_SPEED = 80
+    MIN_SPEED = 5
+
+    distance_rwd = compute_distance_reward(car_state, None, rwd_points)
+
+
 def compute_reward(car_state):
     MAX_SPEED = 300
     MIN_SPEED = 10
@@ -545,33 +555,37 @@ def compute_reward(car_state):
     z = 0
     # pts = [np.array([0, -1, z]), np.array([130, -1, z]), np.array([130, 125, z]), np.array([0, 125, z]), np.array([0, -1, z]), np.array([130, -1, z]), np.array([130, -128, z]), np.array([0, -128, z]), np.array([0, -1, z])]
     # NH environment check points.
-    pts = [np.array([0, 0, 0]), np.array([41, 0, 0]), np.array([101, 0, 0]), np.array([126, -7, 0]),
-           np.array([127, -60, 0]), np.array([127, -114, 0]), np.array([117, -129, 0]), np.array([79, -119, 0]),
-           np.array([86, -109, 0])]
-
-    pd = car_state.kinematics_estimated.position
-    car_pt = np.array([pd.x_val, pd.y_val, pd.z_val])
-
-    dist = 10000000
-    for i in range(0, len(pts) - 1):
-        dist = min(dist, np.linalg.norm(np.cross((car_pt - pts[i]), (car_pt - pts[i + 1]))) / np.linalg.norm(
-            pts[i] - pts[i + 1]))
+    # pts = [np.array([0, 0, 0]), np.array([41, 0, 0]), np.array([101, 0, 0]), np.array([126, -7, 0]),
+    #        np.array([127, -60, 0]), np.array([127, -114, 0]), np.array([117, -129, 0]), np.array([79, -119, 0]),
+    #        np.array([86, -109, 0])]
+    #
+    # pd = car_state.kinematics_estimated.position
+    # car_pt = np.array([pd.x_val, pd.y_val, pd.z_val])
+    #
+    # dist = 10000000
+    # for i in range(0, len(pts) - 1):
+    #     dist = min(dist, np.linalg.norm(np.cross((car_pt - pts[i]), (car_pt - pts[i + 1]))) / np.linalg.norm(
+    #         pts[i] - pts[i + 1]))
 
     # print(dist)
-    if dist > thresh_dist:
-        reward = -3
-    else:
-        reward_dist = (math.exp(-beta * dist) - 0.5)
-        reward_speed = (((car_state.speed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED)) - 0.5)
-        reward = reward_dist + reward_speed
+    # if dist > thresh_dist:
+    #     reward = -3
+    # else:
+    #     reward_dist = (math.exp(-beta * dist) - 0.5)
+    #     reward_speed = (((car_state.speed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED)) - 0.5)
+    #     reward = reward_dist + reward_speed
 
+    reward_speed = (((car_state.speed - MIN_SPEED) / (MAX_SPEED - MIN_SPEED)) - 0.5)
+    rwd_points = init_reward_points()
+    reward_dist = compute_distance_reward(car_state, None, rwd_points)
+    reward = reward_dist + reward_speed
     return reward
 
 
 def isDone(car_state, car_controls, reward):
     done = 0
-    if reward < -1:
-        done = 1
+    # if reward < -1:
+    #     done = 1
     if car_controls.brake == 0:
         if car_state.collision.has_collided:
             done = 1
