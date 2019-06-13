@@ -247,7 +247,7 @@ class DQNAgent():
             # 3) The run has been running for longer than max_epoch_runtime_sec. 
             #       This constraint is so the model doesn't end up having to churn through huge chunks of data, slowing down training
             # 4) The car has run off the road
-            if (collision_info.has_collided or car_state.speed < 2 or utc_now > end_time or far_off):
+            if (collision_info.has_collided or car_state.speed < 0.5 or utc_now > end_time or far_off):
                 print('Start time: {0}, end time: {1}'.format(start_time, utc_now), file=sys.stderr)
                 if (utc_now > end_time):
                     print('timed out.')
@@ -417,7 +417,7 @@ class DQNAgent():
 
         # If the car is stopped, the reward is always zero
         speed = car_state.speed
-        if (speed < 2):
+        if (speed < 0.5):
             return 0.0, True
 
         # Get the car position
@@ -445,7 +445,7 @@ class DQNAgent():
             distance = min(local_distance, distance)
 
         distance_reward = math.exp(-(distance * DISTANCE_DECAY_RATE))
-
+        print("distance reward: %f \n" % distance_reward)
         return distance_reward, distance > THRESH_DIST
 
     # Initializes the points used for determining the starting point of the vehicle
