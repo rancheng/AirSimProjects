@@ -61,12 +61,13 @@ class DQNAgent():
 
         self.__car_client = None
         self.__car_controls = None
-
+        self.__log_dir = os.path.join(self.__data_dir, 'logdir')
         self.__minibatch_dir = os.path.join(self.__data_dir, 'minibatches')
         self.__output_model_dir = os.path.join(self.__data_dir, 'models')
 
         self.__make_dir_if_not_exist(self.__minibatch_dir)
         self.__make_dir_if_not_exist(self.__output_model_dir)
+        self.__make_dir_if_not_exist(self.__log_dir)
         self.__last_model_file = ''
 
         self.__possible_ip_addresses = []
@@ -79,6 +80,8 @@ class DQNAgent():
 
         self.__default_image_height = 144
         self.__default_image_width = 256
+
+        self.__episode_count = 0
 
     # Starts the agent
     def start(self):
@@ -135,6 +138,7 @@ class DQNAgent():
 
                         # If we successfully sampled, train on the collected minibatches and send the gradients to the trainer node
                         if (len(sampled_experiences) > 0):
+
                             print('Publishing AirSim Epoch.')
                             self.__publish_batch_and_update_model(sampled_experiences, frame_count)
 
@@ -281,6 +285,9 @@ class DQNAgent():
                 self.__car_controls.throttle = next_control_signals[1]
                 self.__car_controls.brake = next_control_signals[2]
                 self.__car_client.setCarControls(self.__car_controls)
+                with open(os.path.join(self.__log_dir, 'control_preds.txt'), "a+") as cntl_logf:
+                    cntl_logf.write("%f\t%f\t%f\n" % (self.__car_controls.steering,
+                                                      self.__car_controls.throttle, self.__car_controls.brake))
 
                 # Wait for a short period of time to see outcome
                 time.sleep(wait_delta_sec)
@@ -365,7 +372,7 @@ class DQNAgent():
             sampled_experiences['rewards'] += [experiences['rewards'][i] for i in idx_set]
             sampled_experiences['predicted_rewards'] += [experiences['predicted_rewards'][i] for i in idx_set]
             sampled_experiences['is_not_terminal'] += [experiences['is_not_terminal'][i] for i in idx_set]
-
+            print("sample_exps[pre_state]: ", np.shape(sampled_experiences['pre_states']))
         return sampled_experiences
 
     # Train the model on minibatches and post to the trainer node.
@@ -415,6 +422,7 @@ class DQNAgent():
 
     # Computes the reward functinon based on the car position.
     def __compute_reward(self, collision_info, car_state):
+        self.__episode_count += 1
         # Define some constant parameters for the reward function
         THRESH_DIST = 3.5  # The maximum distance from the center of the road to compute the reward function
         DISTANCE_DECAY_RATE = 1.2  # The rate at which the reward decays for the distance function
@@ -454,6 +462,8 @@ class DQNAgent():
             distance = min(local_distance, distance)
 
         distance_reward = math.exp(-(distance * DISTANCE_DECAY_RATE))
+        with open(os.path.join(self.__log_dir, "rewards.txt"), "a+") as rwd_logf:
+            rwd_logf.write("%d\t%f\n" %(self.__episode_count, distance_reward))
         print("distance reward: %f \n" % distance_reward)
         return distance_reward, distance > THRESH_DIST
 
