@@ -1,5 +1,4 @@
 from time import time
-import time
 import numpy as np
 import json
 import threading
@@ -62,7 +61,8 @@ class RlModel():
         self.__action_model.summary()
         self.__data_dir = "../Shared"
         self.__log_dir = os.path.join(self.__data_dir, 'logdir')
-        tensorboard = TensorBoard(log_dir=os.path.join(self.__log_dir, "{}".format(time())))
+        board_log_dir = os.path.join(self.__log_dir, "{}".format(time()))
+        tboard = TensorBoard(log_dir=board_log_dir)
         # If we are using pretrained weights for the conv layers, load them and verify the first layer.
         if (weights_path is not None and len(weights_path) > 0):
             print('Loading weights from my_model_weights.h5...')
@@ -199,7 +199,7 @@ class RlModel():
         # Perform a training iteration.
         with self.__action_context.as_default():
             original_weights = [np.array(w, copy=True) for w in self.__action_model.get_weights()]
-            self.__action_model.fit([pre_states], labels, epochs=1, batch_size=32, verbose=1, callbacks=[tensorboard])
+            self.__action_model.fit([pre_states], labels, epochs=1, batch_size=32, verbose=1, callbacks=[tboard])
 
             # Compute the gradients
             new_weights = self.__action_model.get_weights()
