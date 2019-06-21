@@ -5,6 +5,7 @@ import threading
 import os
 
 import tensorflow as tf
+import tensorboard.summary
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential, Model, clone_model, load_model
 from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, Lambda, Input, concatenate
@@ -22,7 +23,7 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 session = tf.Session(config=config)
 K.set_session(session)
-
+writer = tf.summary.FileWriter('../Shared/', tf.get_default_graph())
 
 # A wrapper class for the DQN model
 class RlModel():

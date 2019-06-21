@@ -79,6 +79,8 @@ class DQNAgent():
 
         self.__default_image_height = 144
         self.__default_image_width = 256
+        self.__collision_count = 0
+
 
     # Starts the agent
     def start(self):
@@ -416,7 +418,7 @@ class DQNAgent():
     # Computes the reward functinon based on the car position.
     def __compute_reward(self, collision_info, car_state):
         # Define some constant parameters for the reward function
-        THRESH_DIST = 3.5  # The maximum distance from the center of the road to compute the reward function
+        THRESH_DIST = 7.5  # The maximum distance from the center of the road to compute the reward function
         DISTANCE_DECAY_RATE = 1.2  # The rate at which the reward decays for the distance function
         CENTER_SPEED_MULTIPLIER = 2.0  # The ratio at which we prefer the distance reward to the speed reward
 
@@ -436,6 +438,7 @@ class DQNAgent():
 
         pd = car_state.kinematics_estimated.position
         car_point = np.array([pd.x_val, pd.y_val, pd.z_val])
+        print(car_point)
         # car_point = np.array(
         #     [car_state.kinematics_true[position_key][x_val_key], car_state.kinematics_true[position_key][y_val_key], 0])
 
@@ -455,6 +458,7 @@ class DQNAgent():
 
         distance_reward = math.exp(-(distance * DISTANCE_DECAY_RATE))
         print("distance reward: %f \n" % distance_reward)
+        print("distance: %f \n" % distance)
         return distance_reward, distance > THRESH_DIST
 
     # Initializes the points used for determining the starting point of the vehicle
