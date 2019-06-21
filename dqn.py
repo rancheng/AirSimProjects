@@ -475,11 +475,11 @@ def compute_reward(car_state):
     beta = 3
 
     z = 0
-    # pts = [np.array([0, -1, z]), np.array([130, -1, z]), np.array([130, 125, z]), np.array([0, 125, z]), np.array([0, -1, z]), np.array([130, -1, z]), np.array([130, -128, z]), np.array([0, -128, z]), np.array([0, -1, z])]
+    pts = [np.array([0, -1, z]), np.array([130, -1, z]), np.array([130, 125, z]), np.array([0, 125, z]), np.array([0, -1, z]), np.array([130, -1, z]), np.array([130, -128, z]), np.array([0, -128, z]), np.array([0, -1, z])]
     # NH environment check points.
-    pts = [np.array([0, 0, 0]), np.array([41, 0, 0]), np.array([101, 0, 0]), np.array([126, -7, 0]),
-           np.array([127, -60, 0]), np.array([127, -114, 0]), np.array([117, -129, 0]), np.array([79, -119, 0]),
-           np.array([86, -109, 0])]
+    # pts = [np.array([0, 0, 0]), np.array([41, 0, 0]), np.array([101, 0, 0]), np.array([126, -7, 0]),
+    #        np.array([127, -60, 0]), np.array([127, -114, 0]), np.array([117, -129, 0]), np.array([79, -119, 0]),
+    #        np.array([86, -109, 0])]
 
     pd = car_state.kinematics_estimated.position
     car_pt = np.array([pd.x_val, pd.y_val, pd.z_val])
@@ -533,7 +533,7 @@ max_steps = epoch * 250000
 responses = client.simGetImages([airsim.ImageRequest("0", airsim.ImageType.DepthPerspective, True, False)])
 current_state = transform_input(responses)
 while True:
-    if current_state > max_steps:
+    if current_step > max_steps:
         break
     current_step += 1
     action = agent.act(current_state)

@@ -509,7 +509,8 @@ def compute_distance_reward(car_state, collision_info, road_points):
     speed = car_state.speed
     if (speed < 2):
         return 0
-
+    if collision_info.has_collided:
+        return -5
     # Get the car position
     position_key = bytes('position', encoding='utf8')
     x_val_key = bytes('x_val', encoding='utf8')
@@ -584,8 +585,8 @@ def compute_reward(car_state):
 
 def isDone(car_state, car_controls, reward):
     done = 0
-    # if reward < -1:
-    #     done = 1
+    if reward < -1:
+        done = 1
     if car_controls.brake == 0:
         if car_state.collision.has_collided:
             done = 1
