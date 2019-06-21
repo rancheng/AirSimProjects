@@ -3,6 +3,7 @@ import numpy as np
 import json
 import threading
 import os
+import re
 
 import tensorflow as tf
 import tensorboard.summary
@@ -29,7 +30,7 @@ writer = tf.summary.FileWriter('../Shared/', tf.get_default_graph())
 class RlModel():
     def __init__(self, weights_path, train_conv_layers):
         self.__angle_values = [-1, -0.5, 0, 0.5, 1]
-
+        self.__chkpoint_dir = "../Shared/checkpoint/loal_run"
         self.__nb_actions = 5
         self.__gamma = 0.99
 
@@ -68,6 +69,7 @@ class RlModel():
             print('First layer: ')
             w = np.array(self.__action_model.get_weights()[0])
             print(w)
+
         else:
             print('Not loading weights')
 
@@ -78,6 +80,25 @@ class RlModel():
 
         self.__target_context = tf.get_default_graph()
         self.__model_lock = threading.Lock()
+
+        if os.path.isdir(self.__chkpoint_dir):
+            print('<<<<<<<<<<<<<<<Loading checkpoints>>>>>>>>>>>>>>>>')
+            packet = self.load_packet()
+            self.from_packet(packet)
+
+
+    # A helper function to load the packet from checkpoint JSON files.
+    def load_packet(self):
+        fnames = []
+        regex = re.compile(r'\d+')
+        for fname in os.listdir(self.__chkpoint_dir):
+            fnames.append(fname)
+        num_fnames = [int(regex.findall(x)[0]) for x in fnames]
+        latest_ckpt_filename = str(max(num_fnames)) + ".json"
+        with open(os.path.join(self.__chkpoint_dir, latest_ckpt_filename)) as jfile:
+            jdata = json.loads(jfile.read())
+            model = jdata['model']
+            return model
 
     # A helper function to read in the model from a JSON packet.
     # This is used both to read the file from disk and from a network packet
@@ -144,8 +165,13 @@ class RlModel():
 
         # For now, our model only takes a single image in as input.
         # Only read in the last image from each set of examples
-        pre_states = pre_states[:, 3, :, :, :]
-        post_states = post_states[:, 3, :, :, :]
+        # print("pre_states shapes: ", pre_states.shape)
+        if not len(np.shape(pre_states)) > 1:
+            return None
+        pre_states = pre_states[:, -1, :, :, :]
+        if not len(np.shape(post_states)) > 1:
+            return None
+        post_states = post_states[:, -1, :, :, :]
 
         print('START GET GRADIENT UPDATE DEBUG')
 
@@ -193,7 +219,7 @@ class RlModel():
 
         # Our model only predicts on a single state.
         # Take the latest image
-        observation = observation[3, :, :, :]
+        observation = observation[-1, :, :, :]
         observation = observation.reshape(1, 59, 255, 3)
         with self.__action_context.as_default():
             predicted_qs = self.__action_model.predict([observation])
