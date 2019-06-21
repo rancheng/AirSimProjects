@@ -143,6 +143,15 @@ def draw_rl_debug(car_state, road_points):
     plt.plot([car_point[0]], [car_point[1]], 'bo')
     plt.draw()
 
+def preload_reward_map():
+    x_dots = np.arange(-135, 135, 1)
+    y_dots = np.arange(-135, 135, 1)
+    reward_map_data = np.zeros((len(x_dots), len(y_dots)))
+    for i in range(len(x_dots)):
+        for j in range(len(y_dots)):
+            sim_car_point = [x_dots[i], y_dots[j], 0]
+            reward_map_data[i, j] = map_reward(sim_car_point)
+
 
 def test_airsim():
 
@@ -244,5 +253,3 @@ def calculate_distance():
         fig.canvas.flush_events()
         # print("Distance: %f " %distance)
         # print("My Distance: %f" %map_distance(car_point))
-
-calculate_distance()
