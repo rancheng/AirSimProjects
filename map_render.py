@@ -203,25 +203,25 @@ def test_airsim():
     # p1, = ax.plot([car_point[0]], [car_point[1]], 'bo')
     plt.show()
 
-    with open("./Shared/log_car_pos.txt", 'w') as f:
-        while not car_client.simGetCollisionInfo().has_collided:
-            pd = car_client.getCarState().kinematics_estimated.position
-            heading = car_client.getCarState().kinematics_estimated.orientation
-            xyzw = heading.to_numpy_array()
-            ypr = quaternion_to_euler(xyzw[0], xyzw[1], xyzw[2], xyzw[3])
-            yaw = ypr[0]
-            car_point = np.array([pd.x_val, pd.y_val, pd.z_val])
-            # arrow plot of position
-            arrow_i = arrow_fig([car_point[0], car_point[1]], yaw, 8)
-            p1.set_xdata(arrow_i[0])
-            p1.set_ydata(arrow_i[1])
-            print(map_reward(car_point))
-            # dot plot of position
-            # p1.set_xdata(car_point[0])
-            # p1.set_ydata(car_point[1])
-            # p2, = ax.plot([car_point[0]], [car_point[1]], 'r.')
-            fig.canvas.draw()
-            fig.canvas.flush_events()
+
+    while not car_client.simGetCollisionInfo().has_collided:
+        pd = car_client.getCarState().kinematics_estimated.position
+        heading = car_client.getCarState().kinematics_estimated.orientation
+        xyzw = heading.to_numpy_array()
+        ypr = quaternion_to_euler(xyzw[0], xyzw[1], xyzw[2], xyzw[3])
+        yaw = ypr[0]
+        car_point = np.array([pd.x_val, pd.y_val, pd.z_val])
+        # arrow plot of position
+        arrow_i = arrow_fig([car_point[0], car_point[1]], yaw, 8)
+        p1.set_xdata(arrow_i[0])
+        p1.set_ydata(arrow_i[1])
+        print(map_reward(car_point))
+        # dot plot of position
+        p1.set_xdata(car_point[0])
+        p1.set_ydata(car_point[1])
+        p2, = ax.plot([car_point[0]], [car_point[1]], 'r.')
+        fig.canvas.draw()
+        fig.canvas.flush_events()
     dummy_carpoint = [14.69277668 - 3.01696157 - 0.5962258]
 
 
@@ -292,3 +292,4 @@ def arrow_fig(pos, theta, scale=1):
 
 
 # preload_reward_map()
+# test_airsim()
