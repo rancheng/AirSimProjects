@@ -181,6 +181,9 @@ def segrgb2segmask(seg_img):
     encoded_img = img2map_coding(seg_img)
     mask_img = [seg_rgb_dict[e] for e in encoded_img]
     mask_img = np.array(mask_img).reshape((height, width))
+    # debug about the class labels.
+    # unique, counts = np.unique(mask_img, return_counts=True)
+    # print("class num: {}".format(len(unique)), dict(zip(unique, counts)))
     return mask_img
 
 
