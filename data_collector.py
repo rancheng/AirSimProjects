@@ -142,6 +142,9 @@ def collect_car_rand_heading(starting_point, vehicle_client, car_client, rand_nu
         car_client.setCarControls(car_controls)
         time.sleep(4)
         log_data = training_data_collector(vehicle_client, car_client)
+        if log_data == "BAD_DATA":
+            print(log_data)
+            continue
         # print(log_data)
         log_data_txt(logfilename, log_data)
 
@@ -204,6 +207,8 @@ def training_data_collector(vehicle_client, car_client):
     r0 = responses[0]
     r1 = responses[1]
     r2 = responses[2]
+    if not (r0.height > 0 and r1.height > 0 and r2.height > 0):
+        return "BAD_DATA"
     (x_m, y_m) = np.meshgrid(range(0, r1.width), range(0, r1.height))
     if len(r0.image_data_float) > 1:
         img_seg = np.array(r0.image_data_float)
@@ -289,13 +294,15 @@ def log_data_txt(log_file, log_data):
 def count_sample_num_in_map():
     reward_map = np.load('./Shared/reward_map.dat')
     sample_pos_count = 0
+    debug_count = 0
     for rind, row in enumerate(reward_map):
         for cind, column in enumerate(row):
+            print("debug count: {}".format(debug_count))
             car_pos = [rind - 135, cind - 135]
             if column > 0:
                 sample_pos_count += 1
             print("sample count: {}".format(sample_pos_count))
-
+            debug_count += 1
 
 def collect_by_reward_map():
     # connect to airsim
@@ -304,13 +311,34 @@ def collect_by_reward_map():
     timestamp = time.time()
     log_filename = create_log_txt_with_head(timestamp)
     # load reward map data
-    reward_map = np.load('./Shared/reward_map.dat')
+    debug_count = 0
+    reward_map = np.load('./Shared/reward_map.dat', allow_pickle=True)
     for rind, row in tqdm(enumerate(reward_map)):
         for cind, column in enumerate(row):
+
             car_pos = [rind - 135, cind - 135, 0]
             if column > 0:
+                print("r_ind, c_ind: [{}, {}]".format(rind, cind))
                 collect_car_rand_heading(starting_point=car_pos, vehicle_client=veh_client, car_client=c_client,
                                          rand_num=10, logfilename=log_filename)
 
 
-collect_by_reward_map()
+def collect_by_reward_map_with_fname(fname, start_r=0, start_c=0):
+    # connect to airsim
+    veh_client, c_client = connect_airsim()
+    # load reward map data
+    debug_count = 0
+    reward_map = np.load('./Shared/reward_map.dat', allow_pickle=True)
+    for rind, row in tqdm(enumerate(reward_map)):
+        for cind, column in enumerate(row):
+
+            car_pos = [rind - 135, cind - 135, 0]
+            if rind >= start_r and cind >= start_c and column > 0:
+                print("r_ind, c_ind: [{}, {}]".format(rind, cind))
+                collect_car_rand_heading(starting_point=car_pos, vehicle_client=veh_client, car_client=c_client,
+                                         rand_num=10, logfilename=fname)
+
+
+# collect_by_reward_map()
+log_datafname = "./Data/log_rec_1561337060.2409513.txt"
+collect_by_reward_map_with_fname(log_datafname, start_r=6, start_c=242)
